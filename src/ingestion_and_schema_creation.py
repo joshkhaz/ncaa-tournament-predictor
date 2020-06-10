@@ -195,7 +195,7 @@ def raw_data_to_s3():
         logger.error("Could not upload file to S3.")
 
 
-def write_schema_and_data_to_db(local=False):
+def write_schema_and_data_to_db():
     """
     Create table schema and import raw data (from csv in repo, not S3 bucket) to RDS.
     """
@@ -238,10 +238,7 @@ def write_schema_and_data_to_db(local=False):
             return '<Stats %r>' % self.Team
 
     # Start SQLAlchemy session
-    if local==False:
-        engine = sqlalchemy.create_engine(config.DB_ENGINE_STRING)
-    else:
-        engine = sqlalchemy.create_engine(config.DB_ENGINE_STRING)
+    engine = sqlalchemy.create_engine(config.DB_ENGINE_STRING)
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     session=Session()
@@ -290,9 +287,6 @@ def write_schema_and_data_to_db(local=False):
     try:
         session.add_all(stats_rows)
         session.commit()
-        if local==False:
-            logger.info("Stats table created and data written to RDS.")
-        else:
-            logger.info("Stats table created and data written to SQLite.")
+        logger.info("Stats table created and data written to database.")
     except:
         logger.error("Could not create stats table or write data to database.")

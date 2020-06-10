@@ -54,19 +54,18 @@ def add_entry():
     :return: redirect to index page
     """
 
-    #try:
-    team = request.form['team']
     try:
-        round = make_prediction(team)
+        team = request.form['team']
+        try:
+            round = make_prediction(team)
+        except:
+            round = "Team name is invalid. Please try again."
+        one_prediction = pd.DataFrame([round], columns=['one_prediction'])
+        one_prediction.to_csv("./app/one_prediction.csv")
+        return redirect(url_for('index'))
     except:
-        round = "Team name is invalid. Please try again."
-    one_prediction = pd.DataFrame([round], columns=['one_prediction'])
-    one_prediction.to_csv("./app/one_prediction.csv")
-    #logger.info("New song added: %s by %s", request.form['title'], request.form['artist'])
-    return redirect(url_for('index'))
-    #except:
-    #    logger.warning("Not able to display tracks, error page returned")
-    #    return render_template('error.html')
+        logger.warning("Not able to display tracks, error page returned")
+        return render_template('error.html')
 
 
 if __name__ == '__main__':

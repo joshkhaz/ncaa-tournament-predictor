@@ -1,14 +1,12 @@
 import boto3
 import pandas as pd
 import pickle
-import numpy as np
 import config.config as config
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import GradientBoostingClassifier
-from config.config import DB_ENGINE_STRING
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import sessionmaker
 # set up logging
 import logging
@@ -34,28 +32,47 @@ class Preds(Base):
         return '<Preds %r>' % self.Team
 
 def feature_engineering():
+    """
+    Turns aggregate features into proportions and assigned average conference power rating by using a group  by.
+    """
 
-    s3 = boto3.resource('s3', aws_access_key_id=config.AWS_ACCESS_KEY_ID, aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY)
+    logger.info("Acquiring data from S3.")
+    try:
+        s3 = boto3.resource('s3', aws_access_key_id=config.AWS_ACCESS_KEY_ID, aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY)
 
-    s3.Bucket(config.S3_BUCKET).download_file(config.S3_BUCKET_DATA_FILENAME, config.LOCAL_S3_DATA_FILEPATH)
+        s3.Bucket(config.S3_BUCKET).download_file(config.S3_BUCKET_DATA_FILENAME, config.LOCAL_S3_DATA_FILEPATH)
+    except:
+        logger.warning("Couldn't get data from S3.")
 
-    cbb = pd.read_csv(config.LOCAL_S3_DATA_FILEPATH)
+    logger.info("Engineering features.")
+    try:
+        cbb = pd.read_csv(config.LOCAL_S3_DATA_FILEPATH)
 
-    avg_year_conf_power_rating = cbb.groupby(['Year','Conf']).mean()['Power_Rating'].to_frame()
+        avg_year_conf_power_rating = cbb.groupby(['Year','Conf']).mean()['Power_Rating'].to_frame()
 
-    cbb['avg_conf_power_rating'] = cbb.apply(
-        lambda x: avg_year_conf_power_rating.loc[x['Year']].loc[x['Conf']]['Power_Rating'] if x['Conf'] != 'ind' else .5,
-        axis=1)
+        cbb['avg_conf_power_rating'] = cbb.apply(
+            lambda x: avg_year_conf_power_rating.loc[x['Year']].loc[x['Conf']]['Power_Rating'] if x['Conf'] != 'ind' else .5,
+            axis=1)
 
-    cbb['Postseason'] = cbb['Postseason'].apply(lambda x: 'DIDNT_MAKE' if x == 'R68' else x)
+        #Not considering R68
+        cbb['Postseason'] = cbb['Postseason'].apply(lambda x: 'DIDNT_MAKE' if x == 'R68' else x)
 
-    cbb['win_perc'] = cbb.Wins / cbb.Games
+        cbb['win_perc'] = cbb.Wins / cbb.Games
 
-    cbb['wab_perc'] = cbb.WAB / cbb.Games
+        cbb['wab_perc'] = cbb.WAB / cbb.Games
+    except:
+        logger.warning("Couldn't engineer feaures.")
 
-    cbb.to_csv(config.LOCAL_FE_DATA_FILEPATH)
+    logger.info("Saving data.")
+    try:
+        cbb.to_csv(config.LOCAL_FE_DATA_FILEPATH)
+    except:
+        logger.warning("Couldn't save data.")
 
 def model():
+    """
+    Creates trained model object and saves predictions locally.
+    """
 
     cbb = pd.read_csv(config.LOCAL_FE_DATA_FILEPATH)
 
@@ -101,7 +118,7 @@ def model():
 
     preds.to_csv(config.LOCAL_PREDS_DATA_FILEPATH)
 
-def write_preds_to_db(local=False):
+def write_preds_to_db():
 
     """
     Create table schema and import predictions (from csv in repo, not S3 bucket) to RDS.
