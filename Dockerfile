@@ -13,5 +13,6 @@ RUN pip3 install -r requirements.txt
 COPY . ./
 
 RUN chmod +x run.py
+RUN chmod +x test.py
 
-ENTRYPOINT [ "python3" , "run.py"]
+ENTRYPOINT ["python3"]

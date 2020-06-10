@@ -107,7 +107,7 @@ def model():
         classifier.fit(X_train, y_train)
 
         pickle.dump(classifier, open(config.MODEL_OBJECT_FILEPATH, 'wb'))
-    else:
+    except:
         logger.warning("Couldn't make trained model object.")
 
     logger.info("Making predictions and writing them locally.")
@@ -152,7 +152,7 @@ def write_preds_to_db():
     # Import local csv contained scraped data
     logger.info("Importing local csv.")
     try:
-        preds = pd.read_csv(config.LOCAL_PREDS_DATA_FILEPATH
+        preds = pd.read_csv(config.LOCAL_PREDS_DATA_FILEPATH)
     except:
         logger.warning("Couldn't load csv.")
     preds_rows = []

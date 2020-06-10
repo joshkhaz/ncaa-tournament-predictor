@@ -44,7 +44,7 @@ if INCLUDE_WRITING_PREDS_TO_DB is None:
 
 GET_PERFORMANCE = os.environ.get('GET_PERFORMANCE')
 if GET_PERFORMANCE is None:
-    GET_PERFORMANCE = False
+    GET_PERFORMANCE = True
 
 #S3 and AWS
 

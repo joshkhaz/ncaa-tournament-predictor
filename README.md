@@ -9,7 +9,7 @@
   * [Planning](#planning)
   * [Backlog](#backlog)
   * [Icebox](#icebox)
-- [Midpoint Instructions](#midpoint-instructions)
+- [Final Repo Instructions](#final-repo-instructions)
 
 
 <!-- tocstop -->
@@ -105,35 +105,52 @@ Initiative 4: Sell app to NCAA and profit
 - Initiative3.Epic3
 - Initiative4
 
-## Midpoint Instructions
+## Final Repo Instructions
 
 ### Step 1: Configuration
 
-1. Open config.py in the config directory. **Note: Never commit this file to git/github.**
+1. Set the following environment variables from the command line: AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.
 
-2. Replace the default values in <>'s with whatever you please (such as your actual credentials).
+2. _(OPTIONAL)_ Set the environment variable S3_BUCKET to something else, if you don't want to use jjk555.
 
-3. Replace the <>'s with quotes, so that the environment variables are strings.
+3. Decide if you want Cross validation to run or not. CV is a step in the model pipeline that takes 5-10 minutes and outputs a performance metric; it will run by default. Set the env variable GET_PERFORMANCE to False if you don't care to see this step in the pipeline or unit testing, otherwise do nothing.
 
-4. Set LOCAL_DB to True if you wish write to a local SQLite database in the data directory. Set it to False if you wish to write it to RDS. 
+4. _(OPTIONAL)_ Set SQLALCHEMY environment variables if you want to use an alternative engine string: MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST, MYSQL_PORT, MYSQL_DATABASE. If you choose to do this, you will also need to set an additional three environment variables to True for the app to run; all three are outlined in step 5.
 
-5. Set EXAMPLE_SCRAPE to either True or False.
+5. _(OPTIONAL)_ Set INCLUDE_INGESTION and/or INCLUDE_WRITING_PREDS_TO_DB if you want to see these steps conducted in the pipeline. If you set INCLUDE_INGESTION to True, it will do an example scrape (5 minutes), unless you set EXAMPLE_SCRAPE to True (then it will do the full 2-hour scrape).
 
----> Scraping the entire website usually takes a couple hours, but may take up to five hours if your internet is slow. Hence, there is an option to set EXAMPLE_SCRAPE to True. In this case, the scraping function will only scrape a handful of rows (from the years 2008, 2009, and 2020) and will take about a minute. Notice in the data directory, there already exists a file called cbb_local.csv. This contains the fully scraped data. If you choose to set EXAMPLE_SCRAPE to True, then the function will generate a file in the data directory called cbb_local_example.csv. You can then inspect this to see the nine rows that were scraped. The remaining functions (loading data to S3 and RDS/SQLite) are configured to use the full dataset (cbb_local.csv), regardless of what EXAMPLE_SCRAPE is set to. Hence, do not delete cbb_local.csv if you intend to only do an example scrape.
+6. Decide if you want to use RDS or local SQLite for app (or pipeline, if you choose to complete step 5). If you want local, set environment variable LOCAL_DB to True.
 
----> If you wish to have the function scrape all the data from all years (2008 through 2020), then set EXAMPLE_SCRAPE to False, and delete cbb_local.csv from the data directory before you run the image, as it will be generated when you run the script. Also note that it is not required to delete cbb_local.csv, as the scraping function will simply overwrite the existing file, but delete it if you would like to see proof that the scraping works.
+###Step 2: Running pipeline and tests.
 
-_Note: Other than EXAMPLE_SCRAPE, do not change any environment variables that are already set to a value not contained in <>'s._
+1. Run this in command line to build docker image:
 
-### Step 2: Building and running the Docker image.
+`docker build -t pipeline .` 
 
-1. Build the Docker image using the command: `docker build -t ingest .`
+2. Run this in command line to run pipeline:
 
-2. Run the docker image using the command (_note: "winpty" is likely not needed for MAC users_): 
+`winpty docker run --rm -it --mount type=bind,source="$(pwd)"/data/,target=/data/ --env AWS_ACCESS_KEY_ID --env AWS_SECRET_ACCESS_KEY pipeline run.py`
 
-`winpty docker run -it --rm --mount type=bind,source="$(pwd)"/data,target=/data ingest`
+Note: winpty is a Windows thing and may need to be removed.
 
-_Note: Docker may ask for access to the data directory after you run the previous commands. When prompted, allow sharing._
+Note: Any environment variables set other than AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY also need to be flagged. Insert the following into the command above directly before the word "pipeline": `--env <whatever env var you set>`. Do this for each additional environment variable you set.
 
+3. Run this in command line to conduct unit tests:
 
+`winpty docker run --rm -it --mount type=bind,source="$(pwd)"/data/,target=/data/ --env AWS_ACCESS_KEY_ID --env AWS_SECRET_ACCESS_KEY pipeline test.py`
 
+Note: If you set GET_PERFORMANCE to False, you should add `--env GET_PERFORMANCE` to the command above before the word pipeline.
+
+###Step 2: Running app.
+
+1. Run this in command line to build app image:
+
+`docker build -f app/Dockerfile -t app .`    
+
+2. Run this in command line to run app:
+
+`docker run --rm --mount type=bind,source="$(pwd)",target=/app/ --mount type=bind,source="$(pwd)"/data/,target=/data/ --env LOCAL_DB -p 5000:5000 --name test app`
+
+Note: If you set any environment variables in step 4 (SQLAlchemy env vars), they must be flagged in the command above. Insert the following into the command above directly after the word "LOCAL_DB": `--env <whatever env var you set>`. Do this for each additional environment variable you set.
+
+Note: Sometimes you may need to run `docker container kill $(docker ps -q)` first.
