@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="static/basic.css" rel="stylesheet">
+</head>
+
+<body>
+    <h3>
+         <a href = "{{ url_for('index') }}">2020 NCAA Tournament Predictor</a>
+    </h3>
+
+    <hr/>
+    <table>
+         <thead>
+            <tr>
+               <th>Enter your favorite NCAA basketball team, and click the Ball is Life button to predict what round they would have made it to in the 2020 March Madness Tournament!</th>
+            </tr>
+         </thead>
+
+         <tbody>
+            {% for pred in predictions %}
+               <tr>
+                   <td>{{ pred }}</td>
+               </tr>
+            {% endfor %}
+         </tbody>
+      </table>
+      <form action="{{ url_for('add_entry') }}" method=post class=add-entry>
+      <dl>
+        <input type=text size=15 name=team placeholder="Team">
+        <input type=submit value='Ball is Life'>
+      </dl>
+    </form>
+
+</body>
+</html>
