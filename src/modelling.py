@@ -1,7 +1,8 @@
 import boto3
 import pandas as pd
+import pickle
 import numpy as np
-import config
+import config.config as config
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import GradientBoostingClassifier
 from config.config import DB_ENGINE_STRING
@@ -81,6 +82,8 @@ def model():
     classifier = GradientBoostingClassifier(learning_rate=config.LEARNING_RATE,n_estimators =config.N_ESTIMATORS, min_samples_leaf=config.MIN_SAMPLES_LEAF, max_depth=config.MAX_DEPTH, random_state = config.RANDOM_STATE)
     classifier.fit(X_train, y_train)
 
+    pickle.dump(classifier, open(config.MODEL_OBJECT_FILEPATH, 'wb'))
+
     test_preds = classifier.predict(X_test)
 
     test['pred_factor'] = test_preds
@@ -134,12 +137,3 @@ def write_preds_to_db(local=False):
 
     session.add_all(preds_rows)
     session.commit()
-'''   try:
-        session.add_all(preds_rows)
-        session.commit()
-        if local == False:
-            logger.info("Stats table created and data written to RDS.")
-        else:
-            logger.info("Stats table created and data written to SQLite.")
-    except:
-        logger.error("Could not create stats table or write data to database.")'''

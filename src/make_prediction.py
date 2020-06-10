@@ -2,7 +2,7 @@ import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float
 from sqlalchemy.orm import sessionmaker
-from config.config import DB_ENGINE_STRING
+import config.config as config
 
 Base = declarative_base()
 
@@ -21,7 +21,7 @@ class Preds(Base):
     def __repr__(self):
         return '<Preds %r>' % self.Team
 
-engine = sqlalchemy.create_engine(RDS_ENGINE_STRING)
+engine = sqlalchemy.create_engine(config.DB_ENGINE_STRING)
 
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)

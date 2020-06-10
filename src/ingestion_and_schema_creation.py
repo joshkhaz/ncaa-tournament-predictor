@@ -2,12 +2,9 @@
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-from config.config import BASE_URL_pt1, BASE_URL_pt2, LOCAL_RAW_DATA_FILEPATH
-# import environment variables and modules for writing data to S3
-from config.config import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3_BUCKET, S3_BUCKET_DATA_FILENAME
+import config.config as config
 import boto3
 # import environment variables and modules for writing schema and data to RDS
-from config.config import DB_ENGINE_STRING
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Float
@@ -38,7 +35,7 @@ def scrape_data(example_scrape=False):
         logger.info("Scraping data from "+str(year) + ".")
 
         # Set up ability to parse through website
-        base_url = BASE_URL_pt1 + str(year) + BASE_URL_pt2
+        base_url = config.BASE_URL_pt1 + str(year) + config.BASE_URL_pt2
         r = requests.get(base_url)
         soup = BeautifulSoup(r.text, 'html.parser')
 
@@ -126,7 +123,7 @@ def scrape_data(example_scrape=False):
     logger.info("Scraping data from " + str(year) + ".")
 
     # Set up ability to parse through website
-    base_url = BASE_URL_pt1 + str(year) + BASE_URL_pt2
+    base_url = config.BASE_URL_pt1 + str(year) + config.BASE_URL_pt2
     r = requests.get(base_url)
     soup = BeautifulSoup(r.text, 'html.parser')
 
@@ -168,9 +165,9 @@ def scrape_data(example_scrape=False):
             pass
 
     if example_scrape==True:
-        filename_to_write = LOCAL_RAW_DATA_FILEPATH[:-4]+"_example.csv"
+        filename_to_write = config.LOCAL_RAW_DATA_FILEPATH[:-4]+"_example.csv"
     else:
-        filename_to_write = LOCAL_RAW_DATA_FILEPATH
+        filename_to_write = config.LOCAL_RAW_DATA_FILEPATH
 
     try:
         df.to_csv(filename_to_write, index=False)
@@ -186,13 +183,13 @@ def raw_data_to_s3():
     logger.info("Writing raw data to S3.")
 
     try:
-        s3 = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY_ID, aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+        s3 = boto3.client('s3', aws_access_key_id=config.AWS_ACCESS_KEY_ID, aws_secret_access_key=config.AWS_SECRET_ACCESS_KEY)
         logger.info("Established S3 client.")
     except:
         logger.error("Could not establish S3 client.")
 
     try:
-        s3.upload_file(LOCAL_RAW_DATA_FILEPATH, S3_BUCKET, S3_BUCKET_DATA_FILENAME)
+        s3.upload_file(config.LOCAL_RAW_DATA_FILEPATH, config.S3_BUCKET, config.S3_BUCKET_DATA_FILENAME)
         logger.info("Uploaded file to S3.")
     except:
         logger.error("Could not upload file to S3.")
@@ -242,9 +239,9 @@ def write_schema_and_data_to_db(local=False):
 
     # Start SQLAlchemy session
     if local==False:
-        engine = sqlalchemy.create_engine(DB_ENGINE_STRING)
+        engine = sqlalchemy.create_engine(config.DB_ENGINE_STRING)
     else:
-        engine = sqlalchemy.create_engine(DB_ENGINE_STRING)
+        engine = sqlalchemy.create_engine(config.DB_ENGINE_STRING)
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     session=Session()
@@ -256,7 +253,7 @@ def write_schema_and_data_to_db(local=False):
         pass
 
     # Import local csv contained scraped data
-    cbb = pd.read_csv(LOCAL_RAW_DATA_FILEPATH)
+    cbb = pd.read_csv(config.LOCAL_RAW_DATA_FILEPATH)
     stats_rows = []
 
     # Collect data to write to database

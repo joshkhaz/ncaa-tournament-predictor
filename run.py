@@ -1,6 +1,7 @@
 import src.ingestion_and_schema_creation as ingest
 import src.modelling as modelling
-import config
+import config.config as config
+from src.model_performance_metrics import cross_validation
 
 if __name__ == '__main__':
 
@@ -8,7 +9,12 @@ if __name__ == '__main__':
         ingest.scrape_data(example_scrape=config.EXAMPLE_SCRAPE)
         ingest.raw_data_to_s3()
         ingest.write_schema_and_data_to_db(local=config.LOCAL_DB)
+    print("engineering features")
     modelling.feature_engineering()
+    if config.GET_PERFORMANCE == True:
+        print("cross validation")
+        cross_validation()
+    print("modelling")
     modelling.model()
     if config.INCLUDE_WRITING_PREDS_TO_DB == True:
         modelling.write_preds_to_db()
