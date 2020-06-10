@@ -1,4 +1,4 @@
-# MSiA423 - March Madness Project
+# MSiA423 - NCAA Tournament Predictor
 
 <!-- toc -->
 - [Project Charter](#project-charter)
