@@ -46,6 +46,8 @@ def cross_validation():
 
         for seed in range(1,config.NUMBER_OF_CV_REPLICATES+1):
 
+            logger.debug("CV using replicate number "+str(seed)+".")
+
             for df in [R32, S16, E8, F4, SECOND_PLACE, CHAMPIONS]:
                 fold_list = [1, 2, 3, 4] * int(len(df) / 4)
                 random.Random(seed).shuffle(fold_list)
@@ -78,6 +80,9 @@ def cross_validation():
             train_and_validation_bal = pd.concat(all_bal, ignore_index=True)
 
             for fold in [1, 2, 3, 4]:
+
+                logger.debug("CV of fold number "+str(fold)+".")
+
                 train = train_and_validation_bal[train_and_validation_bal.val_fold != fold]
                 validate = train_and_validation_bal[train_and_validation_bal.val_fold == fold]
 

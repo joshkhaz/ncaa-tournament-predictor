@@ -1,6 +1,6 @@
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import sessionmaker
 import config.config as config
 import logging
@@ -32,6 +32,16 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 def make_prediction(team):
+    """
+    Used by app to query database and make a single prediction based on user input.
+
+    param team (str):
+    The team used to filter the query and return just one prediction for that team.
+
+    return prediction (str):
+    The message that the app will show the user.
+    """
+
     query = session.query(Preds.pred_round).filter(Preds.Team == team)
     prediction = query.first()[0]
 

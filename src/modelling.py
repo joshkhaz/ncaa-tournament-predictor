@@ -74,49 +74,62 @@ def model():
     Creates trained model object and saves predictions locally.
     """
 
-    cbb = pd.read_csv(config.LOCAL_FE_DATA_FILEPATH)
+    logger.info("Reading data and making train test split.")
+    try:
+        cbb = pd.read_csv(config.LOCAL_FE_DATA_FILEPATH)
 
-    train = cbb[cbb.Year != 2020]
-    test = cbb[cbb.Year == 2020]
+        train = cbb[cbb.Year != 2020]
+        test = cbb[cbb.Year == 2020]
 
-    factor = pd.factorize(
-        ['DIDNT_MAKE', 'R64', 'R32', 'Sweet Sixteen', 'Elite Eight', 'Final Four', 'Finals', 'CHAMPS'])
-    factor_dict = {list(factor[1])[i]: list(factor[0])[i] for i in range(len(factor[1]))}
-    train['postseason_factor'] = train['Postseason'].map(factor_dict)
 
-    X_train = train[['ADJOE', 'ADJDE', 'EFG_O', 'EFG_D', 'TOR', 'TORD', 'ORB', 'DRB', 'FTR', 'FTRD',
-                                         'Two_PO', 'Two_PD', 'Three_PO', 'Three_PD', 'ADJ_T', 'win_perc', 'wab_perc']]
+        factor = pd.factorize(
+            ['DIDNT_MAKE', 'R64', 'R32', 'Sweet Sixteen', 'Elite Eight', 'Final Four', 'Finals', 'CHAMPS'])
+        factor_dict = {list(factor[1])[i]: list(factor[0])[i] for i in range(len(factor[1]))}
+        train['postseason_factor'] = train['Postseason'].map(factor_dict)
 
-    y_train = train['postseason_factor']
+        X_train = train[['ADJOE', 'ADJDE', 'EFG_O', 'EFG_D', 'TOR', 'TORD', 'ORB', 'DRB', 'FTR', 'FTRD',
+                                             'Two_PO', 'Two_PD', 'Three_PO', 'Three_PD', 'ADJ_T', 'win_perc', 'wab_perc']]
 
-    X_test = test[['ADJOE', 'ADJDE', 'EFG_O', 'EFG_D', 'TOR', 'TORD', 'ORB', 'DRB', 'FTR', 'FTRD',
-                   'Two_PO', 'Two_PD', 'Three_PO', 'Three_PD', 'ADJ_T', 'win_perc', 'wab_perc']]
+        y_train = train['postseason_factor']
 
-    scaler = StandardScaler()
-    X_train = scaler.fit_transform(X_train)
-    X_test = scaler.transform(X_test)
+        X_test = test[['ADJOE', 'ADJDE', 'EFG_O', 'EFG_D', 'TOR', 'TORD', 'ORB', 'DRB', 'FTR', 'FTRD',
+                       'Two_PO', 'Two_PD', 'Three_PO', 'Three_PD', 'ADJ_T', 'win_perc', 'wab_perc']]
+    except:
+        logger.warning("Couldn't load data.")
 
-    classifier = GradientBoostingClassifier(learning_rate=config.LEARNING_RATE,n_estimators =config.N_ESTIMATORS, min_samples_leaf=config.MIN_SAMPLES_LEAF, max_depth=config.MAX_DEPTH, random_state = config.RANDOM_STATE)
-    classifier.fit(X_train, y_train)
+    logger.info("Creating trained model object.")
+    try:
+        scaler = StandardScaler()
+        X_train = scaler.fit_transform(X_train)
+        X_test = scaler.transform(X_test)
 
-    pickle.dump(classifier, open(config.MODEL_OBJECT_FILEPATH, 'wb'))
+        classifier = GradientBoostingClassifier(learning_rate=config.LEARNING_RATE,n_estimators =config.N_ESTIMATORS, min_samples_leaf=config.MIN_SAMPLES_LEAF, max_depth=config.MAX_DEPTH, random_state = config.RANDOM_STATE)
+        classifier.fit(X_train, y_train)
 
-    test_preds = classifier.predict(X_test)
+        pickle.dump(classifier, open(config.MODEL_OBJECT_FILEPATH, 'wb'))
+    else:
+        logger.warning("Couldn't make trained model object.")
 
-    test['pred_factor'] = test_preds
+    logger.info("Making predictions and writing them locally.")
+    try:
+        test_preds = classifier.predict(X_test)
 
-    preds = test[['Team', 'pred_factor']]
+        test['pred_factor'] = test_preds
 
-    round_dict = {0: 'Sorry, your team did not qualify for the tournament. Better luck next year!', 1: 'Congrats! Your team made it to the Round of 64!',
-                  2: 'Wow! Your team made it to the Round of 32!', 3: 'Sensational! Your team made it to the Sweet Sixteen!',
-                  4: 'Amazing! Your team made it to the Elite Eight!', 5: 'Unbelievable! Your team made it to the Final Four!',
-                  6: 'Holy cow! Your team made it to the Finals!', 7: 'YOUR TEAM WAS CROWNED CHAMPIONS!!!'}
+        preds = test[['Team', 'pred_factor']]
 
-    preds['pred_round'] = preds['pred_factor'].map(round_dict)
+        round_dict = {0: 'Sorry, your team did not qualify for the tournament. Better luck next year!', 1: 'Congrats! Your team made it to the Round of 64!',
+                      2: 'Wow! Your team made it to the Round of 32!', 3: 'Sensational! Your team made it to the Sweet Sixteen!',
+                      4: 'Amazing! Your team made it to the Elite Eight!', 5: 'Unbelievable! Your team made it to the Final Four!',
+                      6: 'Holy cow! Your team made it to the Finals!', 7: 'YOUR TEAM WAS CROWNED CHAMPIONS!!!'}
 
-    preds.reset_index(inplace=True)
+        preds['pred_round'] = preds['pred_factor'].map(round_dict)
 
-    preds.to_csv(config.LOCAL_PREDS_DATA_FILEPATH)
+        preds.reset_index(inplace=True)
+
+        preds.to_csv(config.LOCAL_PREDS_DATA_FILEPATH)
+    except:
+        logger.warning("Could not make predictions.")
 
 def write_preds_to_db():
 
@@ -137,7 +150,11 @@ def write_preds_to_db():
         pass
 
     # Import local csv contained scraped data
-    preds = pd.read_csv(config.LOCAL_PREDS_DATA_FILEPATH)
+    logger.info("Importing local csv.")
+    try:
+        preds = pd.read_csv(config.LOCAL_PREDS_DATA_FILEPATH
+    except:
+        logger.warning("Couldn't load csv.")
     preds_rows = []
 
     # Collect data to write to database
