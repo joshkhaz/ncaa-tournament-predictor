@@ -2,23 +2,23 @@ import os
 
 MYSQL_USER = os.environ.get('MYSQL_USER')
 if MYSQL_USER is None:
-    MYSQL_USER = 'msia423instructor'
+    MYSQL_USER = '<insert credentials here>'
 
 MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD')
 if MYSQL_PASSWORD is None:
-    MYSQL_PASSWORD = 'jjk555'
+    MYSQL_PASSWORD = '<insert credentials here>'
 
 MYSQL_HOST = os.environ.get('MYSQL_HOST')
 if MYSQL_HOST is None:
-    MYSQL_HOST = 'msia423-josh-khazanov.c7n6qsjm5ezb.us-east-1.rds.amazonaws.com'
+    MYSQL_HOST = '<insert credentials here>'
 
 MYSQL_PORT = os.environ.get('MYSQL_PORT')
 if MYSQL_PORT is None:
-    MYSQL_PORT = 3306
+    MYSQL_PORT = '<insert credentials here>'
 
 MYSQL_DATABASE = os.environ.get('MYSQL_DATABASE')
 if MYSQL_DATABASE is None:
-    MYSQL_DATABASE = 'msia423_ncaa_tournament'
+    MYSQL_DATABASE = '<insert credentials here>'
 
 LOCAL_DB = os.environ.get('LOCAL_DB')
 if LOCAL_DB is None:
