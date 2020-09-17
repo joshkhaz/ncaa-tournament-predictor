@@ -9,11 +9,11 @@ SQLALCHEMY_ECHO = False  # If true, SQL for queries made will be printed
 MAX_ROWS_SHOW = 100
 
 # Connection string
-MYSQL_USER = 'joshkhazanov'
-MYSQL_PASSWORD = '5!7Be4jj4.4'
-MYSQL_HOST = 'msia423-josh-khazanov.c7n6qsjm5ezb.us-east-1.rds.amazonaws.com'
-MYSQL_PORT = 3306
-MYSQL_DATABASE = 'msia423_ncaa_tournament'
+MYSQL_USER = '<insert credentials here>'
+MYSQL_PASSWORD = '<insert credentials here>'
+MYSQL_HOST = '<insert credentials here>'
+MYSQL_PORT = '<insert credentials here>'
+MYSQL_DATABASE = '<insert credentials here>'
 MYSQL_CONNECTION = 'mysql+pymysql'
 SQLALCHEMY_DATABASE_URI = "{}://{}:{}@{}:{}/{}".format(MYSQL_CONNECTION, MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST, MYSQL_PORT, MYSQL_DATABASE)
 
