@@ -154,3 +154,5 @@ Note: If you set GET_PERFORMANCE to False, you should add `--env GET_PERFORMANCE
 Note: If you set any environment variables in step 4 (SQLAlchemy env vars), they must be flagged in the command above. Insert the following into the command above directly after the word "LOCAL_DB": `--env <whatever env var you set>`. Do this for each additional environment variable you set.
 
 Note: Sometimes you may need to run `docker container kill $(docker ps -q)` first.
+
+
