@@ -1,4 +1,4 @@
-# MSiA423 - NCAA Tournament Predictor
+# NCAA Tournament Predictor
 
 <!-- toc -->
 - [Project Charter](#project-charter)
